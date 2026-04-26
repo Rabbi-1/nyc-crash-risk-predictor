@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Project outputs and downloaded data
+data/raw/*.csv
+data/processed/*.csv
+outputs/figures/*.png
+outputs/maps/*.html
+
+# Keep folder placeholders
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!outputs/figures/.gitkeep
+!outputs/maps/.gitkeep
+
