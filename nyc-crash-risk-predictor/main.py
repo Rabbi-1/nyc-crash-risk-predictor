@@ -9,7 +9,11 @@ from src.download_data import download_crash_data
 from src.feature_engineering import build_crash_rate_table
 from src.monte_carlo import predict_for_zip_hour
 from src.validation import convergence_test
-from src.visualization import plot_convergence, plot_simulated_counts
+from src.visualization import (
+    plot_convergence,
+    plot_empirical_poisson_check,
+    plot_simulated_counts,
+)
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -114,6 +118,20 @@ def main():
     convergence_path = FIGURE_DIR / "convergence_plot.png"
     plot_convergence(convergence_df, convergence_path)
     print(f"Saved convergence plot: {convergence_path}")
+
+    poisson_check_path = FIGURE_DIR / "empirical_vs_poisson_daily_counts.png"
+    poisson_info = plot_empirical_poisson_check(
+        cleaned_df,
+        zip_code=zip_code,
+        day_of_week=day_of_week,
+        hour=hour,
+        output_path=poisson_check_path,
+    )
+    print(f"Saved Poisson check (daily counts): {poisson_info['output_path']}")
+    print(
+        f"  var/mean = {poisson_info['variance_to_mean']:.3f} over "
+        f"{poisson_info['n_days']} days (1.0 is Poisson with constant rate)"
+    )
 
     print("\nConvergence check")
     print(convergence_df.to_string(index=False))

@@ -112,6 +112,7 @@ The demo will:
 - run a Monte Carlo estimate
 - save a histogram to `outputs/figures/simulated_crash_counts.png`
 - save a convergence plot to `outputs/figures/convergence_plot.png`
+- save a daily-count **empirical vs Poisson** figure to `outputs/figures/empirical_vs_poisson_daily_counts.png`
 
 ## Example Output
 
@@ -169,7 +170,7 @@ The notebooks follow the proposed instructional series:
 1. `01_data_cleaning.ipynb` downloads and cleans the crash records.
 2. `02_feature_engineering.ipynb` builds the ZIP/day/hour rate table.
 3. `03_monte_carlo_simulation.ipynb` runs the Gamma-Poisson simulation.
-4. `04_validation.ipynb` checks convergence and introduces Brier score.
+4. `04_validation.ipynb` checks convergence, Brier score, and the empirical daily-count vs Poisson plot.
 5. `05_visualization.ipynb` creates plots and a simple Folium map.
 
 The notebooks call functions from `src/` instead of repeating large blocks of code.

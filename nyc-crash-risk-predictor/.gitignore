@@ -16,4 +16,3 @@ outputs/maps/*.html
 !data/processed/.gitkeep
 !outputs/figures/.gitkeep
 !outputs/maps/.gitkeep
-

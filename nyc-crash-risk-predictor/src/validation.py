@@ -105,3 +105,84 @@ def simple_train_test_split_by_date(cleaned_df, test_fraction=0.2):
     train_df = df[~df["date"].isin(test_dates)].copy()
     test_df = df[df["date"].isin(test_dates)].copy()
     return train_df, test_df
+
+
+def daily_crash_counts_for_bucket(
+    cleaned_df, zip_code, day_of_week, hour, *, min_days=1
+):
+    """Count crashes per calendar day in one ZIP / day-of-week / hour bucket.
+
+    Uses the same exposure idea as :func:`build_crash_rate_table`: days where
+    that *day of week* appears anywhere in the cleaned data define the
+    one-hour “slots” for the bucket, including days with **zero** crashes in
+    that slot (reindexed with zeros).
+
+    Parameters
+    ----------
+    cleaned_df : pandas.DataFrame
+        Output of ``clean_crash_data``; must include ``date``, ``zip_code``,
+        ``day_of_week``, and ``hour``.
+    zip_code : str
+        Five-character ZIP (string to match the rate table).
+    day_of_week : str
+        Full English day name, e.g. ``"Friday"``, matching ``day_of_week``.
+    hour : int
+        Integer hour 0--23.
+    min_days : int, default=1
+        If the resulting series has fewer than this many days, a ``ValueError``
+        is raised (avoids empty or trivial plots).
+
+    Returns
+    -------
+    pandas.Series
+        Index: calendar ``date``; values: integer crash count that day in the
+        bucket. Sorted by date. Name ``crash_count``.
+
+    See Also
+    --------
+    The mean of this series equals ``estimated_lambda`` from
+    ``crash_count / len(series)`` when the exposure count matches
+    ``observed_hours`` from the rate table for that bucket.
+    """
+    if min_days < 1:
+        raise ValueError("min_days must be at least 1.")
+
+    required = {"date", "zip_code", "day_of_week", "hour"}
+    missing = sorted(required - set(cleaned_df.columns))
+    if missing:
+        raise ValueError(f"cleaned_df is missing columns: {missing}")
+
+    df = cleaned_df.copy()
+    df["zip_code"] = df["zip_code"].astype(str)
+    z = str(zip_code).strip()
+    h = int(hour)
+    dow = str(day_of_week).strip()
+
+    exposure = df[df["day_of_week"] == dow].dropna(subset=["date"])
+    exposure_dates = (
+        pd.to_datetime(exposure["date"], errors="coerce")
+        .dt.date.dropna()
+        .drop_duplicates()
+        .sort_values()
+    )
+    if exposure_dates.empty:
+        raise ValueError(f"No rows found for day_of_week {dow!r} in cleaned_df.")
+
+    in_bucket = df[
+        (df["zip_code"] == z) & (df["day_of_week"] == dow) & (df["hour"].astype(int) == h)
+    ]
+    by_date = in_bucket.assign(
+        _d=pd.to_datetime(in_bucket["date"], errors="coerce").dt.date
+    ).groupby("_d", dropna=True).size()
+
+    counts = by_date.reindex(exposure_dates, fill_value=0)
+    counts = counts.astype(int)
+    counts.name = "crash_count"
+
+    if len(counts) < min_days:
+        raise ValueError(
+            f"Not enough exposure days for bucket ZIP {z}, {dow}, hour {h}: "
+            f"need at least {min_days}, got {len(counts)}."
+        )
+
+    return counts
