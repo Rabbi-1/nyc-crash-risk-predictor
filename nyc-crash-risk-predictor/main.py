@@ -10,6 +10,7 @@ from src.feature_engineering import build_crash_rate_table
 from src.monte_carlo import predict_for_zip_hour
 from src.validation import convergence_test
 from src.visualization import (
+    create_choropleth_map,
     plot_convergence,
     plot_empirical_poisson_check,
     plot_simulated_counts,
@@ -132,6 +133,24 @@ def main():
         f"  var/mean = {poisson_info['variance_to_mean']:.3f} over "
         f"{poisson_info['n_days']} days (1.0 is Poisson with constant rate)"
     )
+
+    # Create interactive choropleth map
+    MAP_DIR = PROJECT_ROOT / "outputs" / "maps"
+    MAP_DIR.mkdir(parents=True, exist_ok=True)
+    map_path = MAP_DIR / f"crash_map_{day_of_week.lower()}_{hour:02d}.html"
+
+    print(f"\nCreating interactive crash probability map...")
+    map_result = create_choropleth_map(
+        rate_table=rate_table,
+        day_of_week=day_of_week,
+        hour=hour,
+        weather_condition=weather_condition,
+        num_trials=10000,
+        random_seed=42,
+        output_path=map_path,
+    )
+    print(f"Saved interactive map: {map_result['output_path']}")
+    print(f"  Mapped {len(map_result['results_df'])} ZIP codes")
 
     print("\nConvergence check")
     print(convergence_df.to_string(index=False))

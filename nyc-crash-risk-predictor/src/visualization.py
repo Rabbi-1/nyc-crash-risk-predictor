@@ -243,3 +243,183 @@ def create_zip_probability_map(results_df, output_path):
     crash_map.save(output_path)
     return output_path
 
+
+def create_choropleth_map(
+    rate_table,
+    day_of_week,
+    hour,
+    weather_condition="clear",
+    num_trials=10000,
+    random_seed=42,
+    geojson_url=None,
+    output_path="outputs/maps/crash_probability_map.html",
+):
+    """Create an interactive choropleth map of NYC colored by crash probability.
+
+    Parameters
+    ----------
+    rate_table : pandas.DataFrame
+        Crash rate table from build_crash_rate_table.
+    day_of_week : str
+        Day name such as "Friday".
+    hour : int
+        Hour of day from 0 to 23.
+    weather_condition : str, default="clear"
+        Weather scenario to apply.
+    num_trials : int, default=10000
+        Number of Monte Carlo trials per ZIP.
+    random_seed : int or None
+        Optional seed for reproducible results.
+    geojson_url : str or None
+        URL to NYC ZIP code GeoJSON. If None, uses NYC Open Data.
+    output_path : str or pathlib.Path
+        File path for the HTML map.
+
+    Returns
+    -------
+    dict
+        Contains output_path, results_df, and map object.
+    """
+    import folium
+    import requests
+
+    from .monte_carlo import predict_for_zip_hour
+
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Default NYC ZIP code boundaries GeoJSON from GitHub
+    if geojson_url is None:
+        geojson_url = (
+            "https://raw.githubusercontent.com/nycehs/NYC_geography/master/"
+            "MODZCTA_2010_WGS1984.geo.json"
+        )
+
+    # Compute probabilities for each ZIP
+    print(f"Computing crash probabilities for {day_of_week} at {hour:02d}:00...")
+    results = []
+
+    rate_table = rate_table.copy()
+    rate_table["zip_code"] = rate_table["zip_code"].astype(str)
+
+    # Filter to requested day/hour
+    bucket = rate_table[
+        (rate_table["day_of_week"] == day_of_week)
+        & (rate_table["hour"].astype(int) == hour)
+    ]
+
+    if bucket.empty:
+        raise ValueError(
+            f"No data found for {day_of_week} at hour {hour}. "
+            f"Available days: {rate_table['day_of_week'].unique()}"
+        )
+
+    for _, row in bucket.iterrows():
+        try:
+            result = predict_for_zip_hour(
+                rate_table=rate_table,
+                zip_code=row["zip_code"],
+                day_of_week=day_of_week,
+                hour=hour,
+                weather_condition=weather_condition,
+                num_trials=num_trials,
+                random_seed=random_seed,
+            )
+            results.append(
+                {
+                    "zip_code": row["zip_code"],
+                    "probability_at_least_one": result["probability_at_least_one"],
+                    "crash_count": result["crash_count"],
+                    "observed_hours": result["observed_hours"],
+                    "estimated_lambda": result["estimated_lambda"],
+                }
+            )
+        except Exception as e:
+            print(f"Warning: Skipping ZIP {row['zip_code']}: {e}")
+
+    results_df = pd.DataFrame(results)
+    if results_df.empty:
+        raise ValueError("No results to map.")
+
+    # Fetch GeoJSON
+    print("Fetching NYC ZIP code boundaries...")
+    response = requests.get(geojson_url, timeout=30)
+    response.raise_for_status()
+    geojson_data = response.json()
+
+    # Normalize ZIP codes in GeoJSON to match rate table
+    for feature in geojson_data["features"]:
+        props = feature.get("properties", {})
+        # Try common ZIP code field names (MODZCTA is the primary one)
+        zip_code = props.get("MODZCTA") or props.get("modzcta") or props.get("zipcode") or props.get("ZIP")
+        if zip_code:
+            props["zip_code"] = str(zip_code).strip()
+
+    # Create map centered on NYC
+    crash_map = folium.Map(
+        location=[40.7128, -74.0060],
+        zoom_start=11,
+        tiles="cartodbpositron",
+    )
+
+    # Add choropleth layer
+    folium.Choropleth(
+        geo_data=geojson_data,
+        name="Crash Probability",
+        data=results_df,
+        columns=["zip_code", "probability_at_least_one"],
+        key_on="feature.properties.zip_code",
+        fill_color="YlOrRd",
+        fill_opacity=0.7,
+        line_weight=1,
+        line_color="white",
+        legend_name="Probability of at least one crash",
+        highlight=True,
+    ).add_to(crash_map)
+
+    # Add tooltips showing ZIP and probability
+    folium.GeoJson(
+        geojson_data,
+        name="ZIP Codes",
+        tooltip=folium.GeoJsonTooltip(
+            fields=["zip_code"],
+            aliases=["ZIP Code:"],
+            localize=True,
+        ),
+        style_function=lambda x: {
+            "fillColor": "#ffffff",
+            "color": "#000000",
+            "fillOpacity": 0,
+            "weight": 0,
+        },
+    ).add_to(crash_map)
+
+    # Add title
+    title_html = f"""
+    <div style="position: fixed; 
+                top: 10px; left: 50px; width: 400px; height: auto;
+                border:2px solid grey; z-index:9999; font-size:14px;
+                background-color:white; padding: 10px;
+                border-radius: 5px; box-shadow: 2px 2px 5px rgba(0,0,0,0.3);">
+        <b>NYC Crash Risk Map</b><br>
+        <span style="font-size:12px;">
+        {day_of_week} at {hour:02d}:00<br>
+        Weather: {weather_condition}<br>
+        Probability of at least one crash
+        </span>
+    </div>
+    """
+    crash_map.get_root().html.add_child(folium.Element(title_html))
+
+    # Add layer control
+    folium.LayerControl().add_to(crash_map)
+
+    crash_map.save(output_path)
+    print(f"Saved interactive map: {output_path}")
+
+    return {
+        "output_path": output_path,
+        "results_df": results_df,
+        "map": crash_map,
+    }
+

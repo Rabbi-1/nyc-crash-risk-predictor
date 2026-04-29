@@ -50,6 +50,17 @@ The project uses these fields:
 
 By default, `main.py` downloads 50,000 rows so the project runs quickly on a normal laptop.
 
+## Interactive Map Data Sources
+
+The interactive crash probability map uses the following data sources:
+
+| Source | URL | Description |
+|--------|-----|-------------|
+| **NYC Crash Data** | https://data.cityofnewyork.us/resource/h9gi-nx95.csv | NYC Open Data Motor Vehicle Collisions - Crashes dataset |
+| **NYC ZIP Boundaries** | https://raw.githubusercontent.com/nycehs/NYC_geography/master/MODZCTA_2010_WGS1984.geo.json | ZIP Code Tabulation Areas (MODZCTA) GeoJSON from NYC Geography repository |
+
+The GeoJSON file is sourced from the [nycehs/NYC_geography](https://github.com/nycehs/NYC_geography) GitHub repository, which contains NYC geographic boundaries originally published by the NYC Department of City Planning.
+
 ## How The Model Works
 
 For each ZIP/day/hour bucket, the project counts crashes and estimates exposure.
