@@ -50,6 +50,17 @@ The project uses these fields:
 
 By default, `main.py` downloads 50,000 rows so the project runs quickly on a normal laptop.
 
+## Interactive Map Data Sources
+
+The interactive crash probability map uses the following data sources:
+
+| Source | URL | Description |
+|--------|-----|-------------|
+| **NYC Crash Data** | https://data.cityofnewyork.us/resource/h9gi-nx95.csv | NYC Open Data Motor Vehicle Collisions - Crashes dataset |
+| **NYC ZIP Boundaries** | https://raw.githubusercontent.com/nycehs/NYC_geography/master/MODZCTA_2010_WGS1984.geo.json | ZIP Code Tabulation Areas (MODZCTA) GeoJSON from NYC Geography repository |
+
+The GeoJSON file is sourced from the [nycehs/NYC_geography](https://github.com/nycehs/NYC_geography) GitHub repository, which contains NYC geographic boundaries originally published by the NYC Department of City Planning.
+
 ## How The Model Works
 
 For each ZIP/day/hour bucket, the project counts crashes and estimates exposure.
@@ -112,6 +123,33 @@ The demo will:
 - run a Monte Carlo estimate
 - save a histogram to `outputs/figures/simulated_crash_counts.png`
 - save a convergence plot to `outputs/figures/convergence_plot.png`
+- save a daily-count **empirical vs Poisson** figure to `outputs/figures/empirical_vs_poisson_daily_counts.png`
+- save an **interactive crash probability map** to `outputs/maps/crash_map_<day>_<hour>.html`
+
+### Quick Start: Generate the Interactive Map
+
+1. Open terminal in the `nyc-crash-risk-predictor` folder
+
+2. Install dependencies (if not already done):
+   ```
+   pip install -r requirements.txt
+   ```
+
+3. Run the program:
+   ```
+   python main.py
+   ```
+
+4. Open the map file in your browser:
+   - File is at: `outputs/maps/crash_map_friday_17.html`
+   - Or just double-click it in File Explorer
+   - If the map cannot be seen, try pressing show in browser option 
+
+That's it! The map shows NYC ZIP codes colored by crash probability.
+
+Attached below is the image if you aren't able to compile it yourself
+
+![NYC Crash Risk Map](nyc-crash-risk-predictor/outputs/maps/Map.png)
 
 ## Example Output
 
@@ -169,7 +207,7 @@ The notebooks follow the proposed instructional series:
 1. `01_data_cleaning.ipynb` downloads and cleans the crash records.
 2. `02_feature_engineering.ipynb` builds the ZIP/day/hour rate table.
 3. `03_monte_carlo_simulation.ipynb` runs the Gamma-Poisson simulation.
-4. `04_validation.ipynb` checks convergence and introduces Brier score.
+4. `04_validation.ipynb` checks convergence, Brier score, and the empirical daily-count vs Poisson plot.
 5. `05_visualization.ipynb` creates plots and a simple Folium map.
 
 The notebooks call functions from `src/` instead of repeating large blocks of code.
