@@ -254,32 +254,6 @@ def create_choropleth_map(
     geojson_url=None,
     output_path="outputs/maps/crash_probability_map.html",
 ):
-    """Create an interactive choropleth map of NYC colored by crash probability.
-
-    Parameters
-    ----------
-    rate_table : pandas.DataFrame
-        Crash rate table from build_crash_rate_table.
-    day_of_week : str
-        Day name such as "Friday".
-    hour : int
-        Hour of day from 0 to 23.
-    weather_condition : str, default="clear"
-        Weather scenario to apply.
-    num_trials : int, default=10000
-        Number of Monte Carlo trials per ZIP.
-    random_seed : int or None
-        Optional seed for reproducible results.
-    geojson_url : str or None
-        URL to NYC ZIP code GeoJSON. If None, uses NYC Open Data.
-    output_path : str or pathlib.Path
-        File path for the HTML map.
-
-    Returns
-    -------
-    dict
-        Contains output_path, results_df, and map object.
-    """
     import folium
     import requests
 

@@ -124,6 +124,29 @@ The demo will:
 - save a histogram to `outputs/figures/simulated_crash_counts.png`
 - save a convergence plot to `outputs/figures/convergence_plot.png`
 - save a daily-count **empirical vs Poisson** figure to `outputs/figures/empirical_vs_poisson_daily_counts.png`
+- save an **interactive crash probability map** to `outputs/maps/crash_map_<day>_<hour>.html`
+
+### Quick Start: Generate the Interactive Map
+
+1. Open terminal in the `nyc-crash-risk-predictor` folder
+
+2. Install dependencies (if not already done):
+   ```
+   pip install -r requirements.txt
+   ```
+
+3. Run the program:
+   ```
+   python main.py
+   ```
+
+4. Open the map file in your browser:
+   - File is at: `outputs/maps/crash_map_friday_17.html`
+   - Or just double-click it in File Explorer
+   - If the map cannot be seen, try pressing show in browser option 
+   - An image of the map is also attached at outputs\maps\Map.png
+
+That's it! The map shows NYC ZIP codes colored by crash probability.
 
 ## Example Output
 
