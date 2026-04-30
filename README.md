@@ -171,6 +171,48 @@ Mean simulated crashes: 0.720
 
 If ZIP 10001 is not present in the downloaded sample, the demo automatically selects the first valid ZIP/day/hour row from the crash rate table.
 
+## Model Validation & Simulation Results
+
+This section highlights the statistical *sanity checks* performed to ensure our Monte Carlo simulation accurately reflects the messy reality of NYC traffic data.
+
+---
+
+### 1. Empirical vs. Poisson Distribution Check
+
+We test the core assumption that car crashes follow a **Poisson Process**. By comparing our observed historical counts against a theoretical Poisson curve, we can evaluate how well the mathematical model fits real-world street data.
+
+**Plot:** `<img width="1500" height="825" alt="empirical_vs_poisson_daily_counts png" src="https://github.com/user-attachments/assets/91c5d1e2-0e6c-4a10-8e0f-224a0440873f" />`
+
+**What it tells us:**  
+For ZIP **10001** on **Fridays at 5:00 PM**, the **variance-to-mean ratio is 0.81**. Since this value is close to **1.0**, it confirms that the Poisson distribution is a statistically sound choice for modeling crash occurrences in this context.
+
+---
+
+### 2. Monte Carlo Convergence
+
+To ensure that our probability estimates are stable and reliable, we track how results evolve as the number of simulation trials increases.
+
+**Plot:** `<img width="1200" height="750" alt="convergence_plot png" src="https://github.com/user-attachments/assets/9d9da962-fd25-4a72-93d1-0167fa84fe20" />`
+
+**What it tells us:**  
+The estimated probability fluctuates significantly at low trial counts (**100–500**) but gradually stabilizes as we approach **10,000 trials**. This demonstrates convergence and confirms reliability through the **Law of Large Numbers**.
+
+---
+
+### 3. Simulated Crash Count Distribution
+
+After running **10,000 trials**, we visualize the full distribution of possible crash outcomes for a selected hour.
+
+**Plot:** `<img width="1200" height="750" alt="simulated_crash_counts png" src="https://github.com/user-attachments/assets/424ddb80-0444-47fa-8667-7885bc3400fd" />`
+
+**What it tells us:**  
+- In the majority of trials (~**5,800**), **zero crashes** occurred.  
+- However, the distribution shows a **long tail**, indicating non-zero probabilities for **1, 2, or even 3+ crashes**.  
+
+This distribution forms the basis for calculating the final metric:
+
+> **Probability of At Least One Crash**
+
 ## Project Structure
 
 ```text
