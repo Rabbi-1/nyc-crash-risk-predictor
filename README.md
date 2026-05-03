@@ -1,4 +1,4 @@
-# NYC Crash Risk Predictor
+## NYC Crash Risk Predictor
 
 Monte Carlo simulation project for estimating the probability of at least one motor vehicle crash in a selected New York City ZIP code during a selected one-hour time block.
 
@@ -216,34 +216,7 @@ This distribution forms the basis for calculating the final metric:
 
 > **Probability of At Least One Crash**
 
-## Project Structure
 
-```text
-nyc-crash-risk-predictor/
-├── data/
-│   ├── raw/
-│   └── processed/
-├── notebooks/
-│   ├── 01_data_cleaning.ipynb
-│   ├── 02_feature_engineering.ipynb
-│   ├── 03_monte_carlo_simulation.ipynb
-│   ├── 04_validation.ipynb
-│   └── 05_visualization.ipynb
-├── src/
-│   ├── __init__.py
-│   ├── download_data.py
-│   ├── clean_crashes.py
-│   ├── feature_engineering.py
-│   ├── monte_carlo.py
-│   ├── validation.py
-│   └── visualization.py
-├── outputs/
-│   ├── figures/
-│   └── maps/
-├── requirements.txt
-├── README.md
-└── main.py
-```
 
 ## Notebooks
 
